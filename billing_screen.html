@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Retail Billing</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f3f4f6;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .card {
+      background: #ffffff;
+      padding: 20px 24px;
+      border-radius: 8px;
+      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.12);
+      max-width: 420px;
+      width: 100%;
+    }
+    h1 {
+      margin-top: 0;
+      margin-bottom: 16px;
+      font-size: 20px;
+      text-align: center;
+    }
+    .field {
+      margin-bottom: 12px;
+    }
+    label {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 4px;
+      color: #374151;
+    }
+    input[type="text"],
+    input[type="number"] {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 8px 10px;
+      border-radius: 4px;
+      border: 1px solid #d1d5db;
+      font-size: 14px;
+    }
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    .btn {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 4px;
+      border: none;
+      background: #2563eb;
+      color: #ffffff;
+      font-size: 14px;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+    .btn:hover {
+      background: #1d4ed8;
+    }
+    .results {
+      margin-top: 14px;
+      border-top: 1px solid #e5e7eb;
+      padding-top: 10px;
+      font-size: 14px;
+    }
+    .row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+    .total {
+      font-weight: 600;
+      font-size: 16px;
+    }
+    .error {
+      margin-top: 6px;
+      color: #b91c1c;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Retail Billing</h1>
+    <div class="field">
+      <label for="item">Item</label>
+      <input id="item" type="text" placeholder="Item name" />
+    </div>
+    <div class="field">
+      <label for="qty">Quantity</label>
+      <input id="qty" type="number" min="0" step="1" value="1" />
+    </div>
+    <div class="field">
+      <label for="price">Price</label>
+      <input id="price" type="number" min="0" step="0.01" value="0" />
+    </div>
+    <div class="field">
+      <label for="tax">Tax (%)</label>
+      <input id="tax" type="number" min="0" step="0.01" value="18" />
+    </div>
+    <button class="btn" id="calcBtn">Calculate</button>
+    <div id="error" class="error" style="display:none"></div>
+
+    <div class="results">
+      <div class="row">
+        <span>Subtotal</span>
+        <span id="subtotal">0.00</span>
+      </div>
+      <div class="row">
+        <span>Tax Amount</span>
+        <span id="taxAmount">0.00</span>
+      </div>
+      <div class="row total">
+        <span>Total</span>
+        <span id="total">0.00</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer" style="position:fixed; bottom:12px; width:100%; text-align:center; font-size:12px; color:#6b7280;">
+    Powered by Ragavan
+  </div>
+
+  <script>
+    function calculateTotal() {
+      const qtyEl = document.getElementById('qty');
+      const priceEl = document.getElementById('price');
+      const taxEl = document.getElementById('tax');
+      const errorEl = document.getElementById('error');
+
+      const qty = parseFloat(qtyEl.value || '0');
+      const price = parseFloat(priceEl.value || '0');
+      const taxRate = parseFloat(taxEl.value || '0');
+
+      if (isNaN(qty) || isNaN(price) || isNaN(taxRate)) {
+        errorEl.textContent = 'Please enter numeric values for quantity, price, and tax.';
+        errorEl.style.display = 'block';
+        return;
+      }
+      if (qty < 0 || price < 0 || taxRate < 0) {
+        errorEl.textContent = 'Values cannot be negative.';
+        errorEl.style.display = 'block';
+        return;
+      }
+
+      errorEl.style.display = 'none';
+
+      const subtotal = qty * price;
+      const taxAmount = subtotal * (taxRate / 100);
+      const total = subtotal + taxAmount;
+
+      document.getElementById('subtotal').textContent = subtotal.toFixed(2);
+      document.getElementById('taxAmount').textContent = taxAmount.toFixed(2);
+      document.getElementById('total').textContent = total.toFixed(2);
+    }
+
+    document.getElementById('calcBtn').addEventListener('click', calculateTotal);
+
+    // Recalculate when pressing Enter in any numeric field
+    ['qty', 'price', 'tax'].forEach(id => {
+      const el = document.getElementById(id);
+      el.addEventListener('keyup', function (e) {
+        if (e.key === 'Enter') {
+          calculateTotal();
+        }
+      });
+    });
+  </script>
+</body>
+</html>
