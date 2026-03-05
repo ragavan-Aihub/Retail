@@ -107,11 +107,19 @@
       <input id="tax" type="number" min="0" step="0.01" value="18" />
     </div>
     <div class="field">
-      <label for="discountPercent">Discount (%)</label>
+      <label for="discountType">Discount Type</label>
+      <select id="discountType" style="width: 100%; padding: 8px 10px; border-radius: 4px; border: 1px solid #d1d5db; font-size: 14px;">
+        <option value="none">No Discount</option>
+        <option value="percentage">Percentage (%)</option>
+        <option value="fixed">Fixed Amount</option>
+      </select>
+    </div>
+    <div class="field" id="discountFieldPercent" style="display: none;">
+      <label for="discountPercent">Discount Percentage</label>
       <input id="discountPercent" type="number" min="0" step="0.01" value="0" />
     </div>
-    <div class="field">
-      <label for="discountAmount">Fixed Discount</label>
+    <div class="field" id="discountFieldAmount" style="display: none;">
+      <label for="discountAmount">Discount Amount</label>
       <input id="discountAmount" type="number" min="0" step="0.01" value="0" />
     </div>
     <button class="btn" id="calcBtn">Calculate</button>
@@ -146,10 +154,28 @@
   </div>
 
   <script>
+    function toggleDiscountField() {
+      const discountType = document.getElementById('discountType').value;
+      const percentField = document.getElementById('discountFieldPercent');
+      const amountField = document.getElementById('discountFieldAmount');
+
+      if (discountType === 'percentage') {
+        percentField.style.display = 'block';
+        amountField.style.display = 'none';
+      } else if (discountType === 'fixed') {
+        percentField.style.display = 'none';
+        amountField.style.display = 'block';
+      } else {
+        percentField.style.display = 'none';
+        amountField.style.display = 'none';
+      }
+    }
+
     function calculateTotal() {
       const qtyEl = document.getElementById('qty');
       const priceEl = document.getElementById('price');
       const taxEl = document.getElementById('tax');
+      const discountTypeEl = document.getElementById('discountType');
       const discountPercentEl = document.getElementById('discountPercent');
       const discountAmountEl = document.getElementById('discountAmount');
       const errorEl = document.getElementById('error');
@@ -157,29 +183,47 @@
       const qty = parseFloat(qtyEl.value || '0');
       const price = parseFloat(priceEl.value || '0');
       const taxRate = parseFloat(taxEl.value || '0');
-      const discountPercent = parseFloat(discountPercentEl.value || '0');
-      const discountAmount = parseFloat(discountAmountEl.value || '0');
+      const discountType = discountTypeEl.value;
 
-      if (isNaN(qty) || isNaN(price) || isNaN(taxRate) || isNaN(discountPercent) || isNaN(discountAmount)) {
+      if (isNaN(qty) || isNaN(price) || isNaN(taxRate)) {
         errorEl.textContent = 'Please enter numeric values for all fields.';
         errorEl.style.display = 'block';
         return;
       }
-      if (qty < 0 || price < 0 || taxRate < 0 || discountPercent < 0 || discountAmount < 0) {
+      if (qty < 0 || price < 0 || taxRate < 0) {
         errorEl.textContent = 'Values cannot be negative.';
         errorEl.style.display = 'block';
         return;
       }
 
+      let totalDiscount = 0;
+      if (discountType === 'percentage') {
+        const discountPercent = parseFloat(discountPercentEl.value || '0');
+        if (isNaN(discountPercent) || discountPercent < 0) {
+          errorEl.textContent = 'Discount percentage must be a non-negative number.';
+          errorEl.style.display = 'block';
+          return;
+        }
+        if (discountPercent > 100) {
+          errorEl.textContent = 'Discount percentage cannot exceed 100%.';
+          errorEl.style.display = 'block';
+          return;
+        }
+        totalDiscount = (qty * price) * (discountPercent / 100);
+      } else if (discountType === 'fixed') {
+        const discountAmount = parseFloat(discountAmountEl.value || '0');
+        if (isNaN(discountAmount) || discountAmount < 0) {
+          errorEl.textContent = 'Discount amount must be a non-negative number.';
+          errorEl.style.display = 'block';
+          return;
+        }
+        totalDiscount = discountAmount;
+      }
+
       errorEl.style.display = 'none';
 
       const subtotal = qty * price;
-      
-      // Calculate discount: percentage first, then fixed amount
-      const percentDiscount = subtotal * (discountPercent / 100);
-      const totalDiscount = percentDiscount + discountAmount;
-      
-      const afterDiscount = subtotal - totalDiscount;
+      const afterDiscount = Math.max(subtotal - totalDiscount, 0);
       const taxAmount = afterDiscount * (taxRate / 100);
       const total = afterDiscount + taxAmount;
 
@@ -190,6 +234,7 @@
       document.getElementById('total').textContent = total.toFixed(2);
     }
 
+    document.getElementById('discountType').addEventListener('change', toggleDiscountField);
     document.getElementById('calcBtn').addEventListener('click', calculateTotal);
 
     // Recalculate when pressing Enter in any numeric field
