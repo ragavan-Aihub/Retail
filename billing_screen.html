@@ -107,6 +107,13 @@
       <input id="tax" type="number" min="0" step="0.01" value="18" />
     </div>
     <div class="field">
+      <label for="taxType">Tax Type</label>
+      <select id="taxType" style="width: 100%; padding: 8px 10px; border-radius: 4px; border: 1px solid #d1d5db; font-size: 14px;">
+        <option value="exclusive">Tax Exclusive</option>
+        <option value="inclusive">Tax Inclusive</option>
+      </select>
+    </div>
+    <div class="field">
       <label for="discountType">Discount Type</label>
       <select id="discountType" style="width: 100%; padding: 8px 10px; border-radius: 4px; border: 1px solid #d1d5db; font-size: 14px;">
         <option value="none">No Discount</option>
@@ -175,6 +182,7 @@
       const qtyEl = document.getElementById('qty');
       const priceEl = document.getElementById('price');
       const taxEl = document.getElementById('tax');
+      const taxTypeEl = document.getElementById('taxType');
       const discountTypeEl = document.getElementById('discountType');
       const discountPercentEl = document.getElementById('discountPercent');
       const discountAmountEl = document.getElementById('discountAmount');
@@ -183,6 +191,7 @@
       const qty = parseFloat(qtyEl.value || '0');
       const price = parseFloat(priceEl.value || '0');
       const taxRate = parseFloat(taxEl.value || '0');
+      const taxType = taxTypeEl.value;
       const discountType = discountTypeEl.value;
 
       if (isNaN(qty) || isNaN(price) || isNaN(taxRate)) {
@@ -222,10 +231,28 @@
 
       errorEl.style.display = 'none';
 
-      const subtotal = qty * price;
-      const afterDiscount = Math.max(subtotal - totalDiscount, 0);
-      const taxAmount = afterDiscount * (taxRate / 100);
-      const total = afterDiscount + taxAmount;
+      let subtotal, baseAmount, taxAmount, afterDiscount, total;
+
+      if (taxType === 'inclusive') {
+        // Price includes tax
+        subtotal = qty * price;
+        // Extract base amount from inclusive price
+        baseAmount = subtotal / (1 + taxRate / 100);
+        const includedTax = subtotal - baseAmount;
+        
+        // Apply discount on base amount
+        afterDiscount = Math.max(baseAmount - totalDiscount, 0);
+        
+        // Recalculate tax on discounted base
+        taxAmount = afterDiscount * (taxRate / 100);
+        total = afterDiscount + taxAmount;
+      } else {
+        // Tax is exclusive (default)
+        subtotal = qty * price;
+        afterDiscount = Math.max(subtotal - totalDiscount, 0);
+        taxAmount = afterDiscount * (taxRate / 100);
+        total = afterDiscount + taxAmount;
+      }
 
       document.getElementById('subtotal').textContent = subtotal.toFixed(2);
       document.getElementById('discount').textContent = totalDiscount.toFixed(2);
@@ -235,6 +262,7 @@
     }
 
     document.getElementById('discountType').addEventListener('change', toggleDiscountField);
+    document.getElementById('taxType').addEventListener('change', calculateTotal);
     document.getElementById('calcBtn').addEventListener('click', calculateTotal);
 
     // Recalculate when pressing Enter in any numeric field
