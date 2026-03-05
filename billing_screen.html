@@ -106,6 +106,14 @@
       <label for="tax">Tax (%)</label>
       <input id="tax" type="number" min="0" step="0.01" value="18" />
     </div>
+    <div class="field">
+      <label for="discountPercent">Discount (%)</label>
+      <input id="discountPercent" type="number" min="0" step="0.01" value="0" />
+    </div>
+    <div class="field">
+      <label for="discountAmount">Fixed Discount</label>
+      <input id="discountAmount" type="number" min="0" step="0.01" value="0" />
+    </div>
     <button class="btn" id="calcBtn">Calculate</button>
     <div id="error" class="error" style="display:none"></div>
 
@@ -113,6 +121,14 @@
       <div class="row">
         <span>Subtotal</span>
         <span id="subtotal">0.00</span>
+      </div>
+      <div class="row">
+        <span>Discount</span>
+        <span id="discount">0.00</span>
+      </div>
+      <div class="row">
+        <span>After Discount</span>
+        <span id="afterDiscount">0.00</span>
       </div>
       <div class="row">
         <span>Tax Amount</span>
@@ -134,18 +150,22 @@
       const qtyEl = document.getElementById('qty');
       const priceEl = document.getElementById('price');
       const taxEl = document.getElementById('tax');
+      const discountPercentEl = document.getElementById('discountPercent');
+      const discountAmountEl = document.getElementById('discountAmount');
       const errorEl = document.getElementById('error');
 
       const qty = parseFloat(qtyEl.value || '0');
       const price = parseFloat(priceEl.value || '0');
       const taxRate = parseFloat(taxEl.value || '0');
+      const discountPercent = parseFloat(discountPercentEl.value || '0');
+      const discountAmount = parseFloat(discountAmountEl.value || '0');
 
-      if (isNaN(qty) || isNaN(price) || isNaN(taxRate)) {
-        errorEl.textContent = 'Please enter numeric values for quantity, price, and tax.';
+      if (isNaN(qty) || isNaN(price) || isNaN(taxRate) || isNaN(discountPercent) || isNaN(discountAmount)) {
+        errorEl.textContent = 'Please enter numeric values for all fields.';
         errorEl.style.display = 'block';
         return;
       }
-      if (qty < 0 || price < 0 || taxRate < 0) {
+      if (qty < 0 || price < 0 || taxRate < 0 || discountPercent < 0 || discountAmount < 0) {
         errorEl.textContent = 'Values cannot be negative.';
         errorEl.style.display = 'block';
         return;
@@ -154,10 +174,18 @@
       errorEl.style.display = 'none';
 
       const subtotal = qty * price;
-      const taxAmount = subtotal * (taxRate / 100);
-      const total = subtotal + taxAmount;
+      
+      // Calculate discount: percentage first, then fixed amount
+      const percentDiscount = subtotal * (discountPercent / 100);
+      const totalDiscount = percentDiscount + discountAmount;
+      
+      const afterDiscount = subtotal - totalDiscount;
+      const taxAmount = afterDiscount * (taxRate / 100);
+      const total = afterDiscount + taxAmount;
 
       document.getElementById('subtotal').textContent = subtotal.toFixed(2);
+      document.getElementById('discount').textContent = totalDiscount.toFixed(2);
+      document.getElementById('afterDiscount').textContent = afterDiscount.toFixed(2);
       document.getElementById('taxAmount').textContent = taxAmount.toFixed(2);
       document.getElementById('total').textContent = total.toFixed(2);
     }
@@ -165,7 +193,7 @@
     document.getElementById('calcBtn').addEventListener('click', calculateTotal);
 
     // Recalculate when pressing Enter in any numeric field
-    ['qty', 'price', 'tax'].forEach(id => {
+    ['qty', 'price', 'tax', 'discountPercent', 'discountAmount'].forEach(id => {
       const el = document.getElementById(id);
       el.addEventListener('keyup', function (e) {
         if (e.key === 'Enter') {
