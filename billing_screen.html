@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Retail Calculator</title>
   <style>
     body {
@@ -129,6 +130,70 @@
       padding: 10px 0;
       box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
       letter-spacing: 0.5px;
+    }
+    
+    @media (max-width: 480px) {
+      body {
+        padding: 12px;
+        padding-bottom: 90px;
+      }
+      .card {
+        padding: 16px 20px;
+        max-width: 100%;
+      }
+      h1 {
+        font-size: 24px;
+        margin-bottom: 14px;
+      }
+      .field {
+        margin-bottom: 10px;
+      }
+      label {
+        font-size: 12px;
+        margin-bottom: 3px;
+      }
+      input[type="text"],
+      input[type="number"],
+      select {
+        padding: 10px 8px;
+        font-size: 16px;
+      }
+      .btn {
+        padding: 12px 10px;
+        font-size: 14px;
+        margin-top: 8px;
+      }
+      .results {
+        margin-top: 12px;
+        padding: 10px;
+        font-size: 13px;
+      }
+      .row {
+        margin-bottom: 6px;
+      }
+      .total {
+        font-size: 16px;
+        margin-top: 6px;
+        padding-top: 6px;
+      }
+      .footer {
+        font-size: 12px;
+        padding: 8px 0;
+        bottom: 12px;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      body {
+        padding-bottom: 85px;
+      }
+      .card {
+        max-width: 100%;
+        padding: 18px 22px;
+      }
+      h1 {
+        font-size: 26px;
+      }
     }
   </style>
 </head>
